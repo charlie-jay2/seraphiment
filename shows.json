@@ -1,0 +1,14 @@
+{
+  "showName": "Roblox Doctor Who",
+  "series": [
+    {
+      "seriesNumber": 1,
+      "episodes": [
+        {
+          "file": "assets/rdw/series-1/DWATB.mp4",
+          "thumbnail": "assets/rdw/series-1/DWATB.jpg"
+        }
+      ]
+    }
+  ]
+}
