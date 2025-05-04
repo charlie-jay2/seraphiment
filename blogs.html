@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blogs - Seraphim Entertainment</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .blog-button {
+      background-color: #343a40;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      padding: 16px;
+      text-align: left;
+      height: 100%;
+    }
+
+    .blog-button:hover {
+      background-color: #495057;
+    }
+
+    .blog-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .blog-date {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-top: 5px;
+    }
+
+    #modal-blog-text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Seraphim Entertainment</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="./index.html">Home</a>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="./blogs.html">SE Unwrapped</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container my-5 text-center">
+    <h1 id="blog-title">Loading...</h1>
+    <p id="blog-description" class="text-muted"></p>
+    <div id="blog-grid" class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4 mt-4"></div>
+    <p id="no-blogs-message" class="text-muted mt-5" style="display: none;">No blog posts available at this time.</p>
+  </div>
+
+  <!-- Blog Modal -->
+  <div class="modal fade" id="blogModal" tabindex="-1" aria-labelledby="blogModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title" id="blogModalLabel">Blog Title</h5>
+            <small id="blogModalDate" class="text-muted"></small>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <video id="modal-video-player" width="100%" controls controlsList="nodownload noplaybackrate" oncontextmenu="return false;">
+            <source id="modal-video-source" src="" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          <p class="mt-3" id="modal-no-video" style="display: none; color: red;">No video available for this post.</p>
+          <div id="modal-blog-text" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    fetch('blogs.json')
+      .then(res => res.json())
+      .then(data => {
+        const blogTitle = document.getElementById("blog-title");
+        const blogDescription = document.getElementById("blog-description");
+        const blogGrid = document.getElementById("blog-grid");
+        const noBlogsMessage = document.getElementById("no-blogs-message");
+
+        blogTitle.textContent = data.blogName || "Blog";
+        blogDescription.textContent = data.description || "";
+
+        if (!data.posts || data.posts.length === 0) {
+          noBlogsMessage.style.display = "block";
+          return;
+        }
+
+        data.posts.forEach(post => {
+          const col = document.createElement("div");
+          col.classList.add("col");
+
+          const blogBtn = document.createElement("button");
+          blogBtn.classList.add("blog-button");
+
+          blogBtn.innerHTML = `
+            <div class="blog-title">${post.title}</div>
+            <div class="blog-date">${post.date || "No Date Provided"}</div>
+          `;
+
+          blogBtn.onclick = function () {
+            const modalTitle = document.getElementById("blogModalLabel");
+            const modalDate = document.getElementById("blogModalDate");
+            const modalVideo = document.getElementById("modal-video-player");
+            const modalSource = document.getElementById("modal-video-source");
+            const noVideoMessage = document.getElementById("modal-no-video");
+            const modalText = document.getElementById("modal-blog-text");
+
+            modalTitle.textContent = post.title;
+            modalDate.textContent = post.date || "";
+            modalText.textContent = post.content || "";
+
+            if (post.video && post.video.trim() !== "") {
+              modalSource.src = post.video;
+              modalVideo.style.display = "block";
+              noVideoMessage.style.display = "none";
+              modalVideo.load();
+            } else {
+              modalSource.src = "";
+              modalVideo.style.display = "none";
+              noVideoMessage.style.display = "block";
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById("blogModal"));
+            modal.show();
+          };
+
+          col.appendChild(blogBtn);
+          blogGrid.appendChild(col);
+        });
+      })
+      .catch(error => {
+        document.getElementById("blog-title").textContent = "Failed to load blog";
+        console.error("Error loading blogs.json:", error);
+      });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
