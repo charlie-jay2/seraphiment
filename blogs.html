@@ -113,7 +113,7 @@
         const blogGrid = document.getElementById("blog-grid");
         const noBlogsMessage = document.getElementById("no-blogs-message");
 
-        if (!data || data.length === 0) {
+        if (!Array.isArray(data) || data.length === 0) {
           noBlogsMessage.style.display = "block";
           return;
         }

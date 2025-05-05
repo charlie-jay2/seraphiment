@@ -7,12 +7,20 @@ exports.handler = async (event, context) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     const db = client.db();
     const blogsCollection = db.collection('blogs');
 
     // Fetch all blogs and posts
     const blogs = await blogsCollection.find().toArray();
+
+    // Ensure blogs data is an array
+    if (!Array.isArray(blogs)) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Blogs data is not an array' }),
+      };
+    }
 
     // Map the blogs data to the required format for the frontend
     const result = blogs.map(blog => ({
