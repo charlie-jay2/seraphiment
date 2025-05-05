@@ -1,87 +1,69 @@
-const { MongoClient, GridFSBucket } = require('mongodb');
-const Busboy = require('busboy');
+const { MongoClient } = require("mongodb");
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: "Method Not Allowed" }),
+    };
   }
 
-  const busboy = new Busboy({ headers: event.headers });
-  const fields = {};
-  let fileBuffer = Buffer.alloc(0);
-  let fileName = '';
-  let fileMimeType = '';
-  
-  return new Promise((resolve, reject) => {
-    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-      fileName = filename;
-      fileMimeType = mimetype;
+  try {
+    const { blogName, description, content } = JSON.parse(event.body);
 
-      file.on('data', (data) => {
-        fileBuffer = Buffer.concat([fileBuffer, data]);
+    if (!blogName || !description || !content) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Missing required fields." }),
+      };
+    }
+
+    const client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    const db = client.db("seraphim");
+    const collection = db.collection("blogs");
+
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year = today.getFullYear();
+    const dateString = `${day}/${month}/${year}`;
+
+    const post = {
+      title: blogName,
+      date: dateString,
+      content
+    };
+
+    const existing = await collection.findOne({ blogName });
+
+    if (existing) {
+      await collection.updateOne(
+        { blogName },
+        {
+          $set: { description },
+          $push: { posts: post }
+        }
+      );
+    } else {
+      await collection.insertOne({
+        blogName,
+        description,
+        posts: [post]
       });
-    });
+    }
 
-    busboy.on('field', (fieldname, value) => {
-      fields[fieldname] = value;
-    });
+    client.close();
 
-    busboy.on('finish', async () => {
-      try {
-        // Validate required fields
-        if (!fields.blogName || !fields.description || !fields.content) {
-          return reject({
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Missing required fields: blogName, description, or content' }),
-          });
-        }
-
-        const client = await MongoClient.connect(process.env.MONGO_URI, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
-        const db = client.db();
-        const bucket = new GridFSBucket(db, { bucketName: 'videos' });
-
-        let videoId = null;
-
-        // Upload the video if a file is provided
-        if (fileBuffer.length > 0) {
-          const uploadStream = bucket.openUploadStream(fileName, {
-            contentType: fileMimeType,
-            metadata: { uploadedBy: 'admin', uploadDate: new Date() },
-          });
-
-          uploadStream.end(fileBuffer);
-          videoId = uploadStream.id; // Save the video ID if uploaded
-        }
-
-        // Insert the blog post into the database
-        const blogPost = {
-          blogName: fields.blogName,
-          description: fields.description,
-          content: fields.content,
-          date: new Date().toLocaleDateString('en-GB'),
-          videoId: videoId || null, // Video ID will be null if no video is uploaded
-        };
-
-        await db.collection('blogs').insertOne(blogPost);
-        client.close();
-
-        resolve({
-          statusCode: 200,
-          body: JSON.stringify({ message: 'Blog post created successfully!' }),
-        });
-      } catch (error) {
-        console.error('Error creating blog:', error);
-        reject({
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Error creating blog post' }),
-        });
-      }
-    });
-
-    busboy.write(event.body, event.isBase64Encoded ? 'base64' : 'binary');
-    busboy.end();
-  });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Blog post saved!" }),
+    };
+  } catch (err) {
+    console.error("Function error:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Server error", error: err.message }),
+    };
+  }
 };

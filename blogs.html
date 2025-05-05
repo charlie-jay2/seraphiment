@@ -93,11 +93,6 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <video id="modal-video-player" width="100%" controls controlsList="nodownload noplaybackrate" oncontextmenu="return false;">
-            <source id="modal-video-source" src="" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-          <p class="mt-3" id="modal-no-video" style="display: none; color: red;">No video available for this post.</p>
           <div id="modal-blog-text" class="mt-3"></div>
         </div>
       </div>
@@ -118,11 +113,9 @@
           return;
         }
 
-        // Set main blog info (if available)
         blogTitle.textContent = data[0].blogName || "Blog";
         blogDescription.textContent = data[0].description || "";
 
-        // Loop through each blog post
         data[0].posts.forEach(post => {
           const col = document.createElement("div");
           col.classList.add("col");
@@ -131,33 +124,14 @@
           blogBtn.classList.add("blog-button");
 
           blogBtn.innerHTML = `
-            <div class="blog-title">${post.blogName || "Untitled"}</div>
+            <div class="blog-title">${post.title || "Untitled"}</div>
             <div class="blog-date">${post.date || "No Date Provided"}</div>
           `;
 
           blogBtn.onclick = function () {
-            const modalTitle = document.getElementById("blogModalLabel");
-            const modalDate = document.getElementById("blogModalDate");
-            const modalVideo = document.getElementById("modal-video-player");
-            const modalSource = document.getElementById("modal-video-source");
-            const noVideoMessage = document.getElementById("modal-no-video");
-            const modalText = document.getElementById("modal-blog-text");
-
-            modalTitle.textContent = post.blogName;
-            modalDate.textContent = post.date || "";
-            modalText.textContent = post.content || "";
-
-            // Check if video exists
-            if (post.videoId) {
-              modalSource.src = `/files/${post.videoId}`;
-              modalVideo.style.display = "block";
-              noVideoMessage.style.display = "none";
-              modalVideo.load();
-            } else {
-              modalSource.src = "";
-              modalVideo.style.display = "none";
-              noVideoMessage.style.display = "block";
-            }
+            document.getElementById("blogModalLabel").textContent = post.title;
+            document.getElementById("blogModalDate").textContent = post.date || "";
+            document.getElementById("modal-blog-text").textContent = post.content || "";
 
             const modal = new bootstrap.Modal(document.getElementById("blogModal"));
             modal.show();

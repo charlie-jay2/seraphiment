@@ -30,7 +30,6 @@ exports.handler = async (event, context) => {
         title: post.title,
         content: post.content,
         date: post.date ? new Date(post.date).toLocaleDateString('en-GB') : "No Date Provided",
-        video: post.videoId ? `/getVideo/${post.videoId}` : "",
       })),
     }));
 
