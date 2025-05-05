@@ -53,7 +53,7 @@ exports.handler = async (event) => {
       });
     }
 
-    client.close();
+    await client.close();
 
     return {
       statusCode: 200,
