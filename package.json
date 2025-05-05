@@ -3,6 +3,7 @@
     "busboy": "^1.6.0",
     "gridfs-stream": "^1.1.1",
     "mongodb": "^6.16.0",
+    "mongoose": "^8.14.1",
     "netlify": "^13.3.5"
   }
 }
