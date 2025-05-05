@@ -1,69 +1,46 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient } = require('mongodb');
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ message: "Method Not Allowed" }),
-    };
-  }
-
+exports.handler = async (event, context) => {
   try {
-    const { blogName, description, content } = JSON.parse(event.body);
+    // Parse the incoming request body
+    const { blogName, description, posts } = JSON.parse(event.body);
 
-    if (!blogName || !description || !content) {
+    // Validate the input data
+    if (!blogName || !description || !Array.isArray(posts)) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "Missing required fields." }),
+        body: JSON.stringify({ error: 'Invalid input. Missing required fields.' }),
       };
     }
 
-    const client = new MongoClient(process.env.MONGODB_URI);
-    await client.connect();
-    const db = client.db("seraphim");
-    const collection = db.collection("blogs");
+    // Use a persistent MongoDB connection
+    const client = await MongoClient.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, "0");
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const year = today.getFullYear();
-    const dateString = `${day}/${month}/${year}`;
+    const db = client.db();
+    const blogsCollection = db.collection('blogs');
 
-    const post = {
-      title: blogName,
-      date: dateString,
-      content
-    };
+    // Insert the new blog with posts
+    const result = await blogsCollection.insertOne({
+      blogName,
+      description,
+      posts, // Assuming posts is an array of objects
+    });
 
-    const existing = await collection.findOne({ blogName });
-
-    if (existing) {
-      await collection.updateOne(
-        { blogName },
-        {
-          $set: { description },
-          $push: { posts: post }
-        }
-      );
-    } else {
-      await collection.insertOne({
-        blogName,
-        description,
-        posts: [post]
-      });
-    }
-
-    await client.close();
+    client.close();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Blog post saved!" }),
+      body: JSON.stringify({ success: true, blogId: result.insertedId, blogName }),
     };
-  } catch (err) {
-    console.error("Function error:", err);
+  } catch (error) {
+    console.error("Error creating blog:", error);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: "Server error", error: err.message }),
+      body: JSON.stringify({ error: 'Error creating blog' }),
     };
   }
 };

@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bson": "^6.10.3",
     "busboy": "^1.6.0",
     "gridfs-stream": "^1.1.1",
     "mongodb": "^6.16.0",

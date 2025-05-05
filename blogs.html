@@ -75,8 +75,8 @@
   </nav>
 
   <div class="container my-5 text-center">
-    <h1 id="blog-title">Loading...</h1>
-    <p id="blog-description" class="text-muted"></p>
+    <h1 id="blog-title">Seraphim Entertainment Unwrapped</h1>
+    <p id="blog-description">Welcome to the official blog section of Seraphim Entertainment! Stay updated with our latest content, behind-the-scenes insights, and much more.</p>
     <div id="blog-grid" class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4 mt-4"></div>
     <p id="no-blogs-message" class="text-muted mt-5" style="display: none;">No blog posts available at this time.</p>
   </div>
@@ -103,42 +103,44 @@
     fetch('/.netlify/functions/getBlogs')
       .then(res => res.json())
       .then(data => {
-        const blogTitle = document.getElementById("blog-title");
-        const blogDescription = document.getElementById("blog-description");
         const blogGrid = document.getElementById("blog-grid");
         const noBlogsMessage = document.getElementById("no-blogs-message");
-
+  
         if (!Array.isArray(data) || data.length === 0) {
           noBlogsMessage.style.display = "block";
           return;
         }
-
-        blogTitle.textContent = data[0].blogName || "Blog";
-        blogDescription.textContent = data[0].description || "";
-
-        data[0].posts.forEach(post => {
-          const col = document.createElement("div");
-          col.classList.add("col");
-
-          const blogBtn = document.createElement("button");
-          blogBtn.classList.add("blog-button");
-
-          blogBtn.innerHTML = `
-            <div class="blog-title">${post.title || "Untitled"}</div>
-            <div class="blog-date">${post.date || "No Date Provided"}</div>
-          `;
-
-          blogBtn.onclick = function () {
-            document.getElementById("blogModalLabel").textContent = post.title;
-            document.getElementById("blogModalDate").textContent = post.date || "";
-            document.getElementById("modal-blog-text").textContent = post.content || "";
-
-            const modal = new bootstrap.Modal(document.getElementById("blogModal"));
-            modal.show();
-          };
-
-          col.appendChild(blogBtn);
-          blogGrid.appendChild(col);
+  
+        // Loop through each blog's posts
+        data.forEach(blog => {
+          // Check if there are posts for the current blog
+          if (blog.posts && blog.posts.length > 0) {
+            blog.posts.forEach(post => {
+              const col = document.createElement("div");
+              col.classList.add("col");
+  
+              const blogBtn = document.createElement("button");
+              blogBtn.classList.add("blog-button");
+  
+              blogBtn.innerHTML = `
+                <div class="blog-title">${post.title || "Untitled"}</div>
+                <div class="blog-date">${post.date || "No Date Provided"}</div>
+              `;
+  
+              // Open modal with blog post content
+              blogBtn.onclick = function () {
+                document.getElementById("blogModalLabel").textContent = blog.blogName; // Set blogName in modal
+                document.getElementById("blogModalDate").textContent = post.date || "";
+                document.getElementById("modal-blog-text").textContent = post.content || "";
+  
+                const modal = new bootstrap.Modal(document.getElementById("blogModal"));
+                modal.show();
+              };
+  
+              col.appendChild(blogBtn);
+              blogGrid.appendChild(col);
+            });
+          }
         });
       })
       .catch(error => {
@@ -146,7 +148,7 @@
         console.error("Error fetching blogs:", error);
       });
   </script>
-
+  
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
