@@ -1,0 +1,12 @@
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  [functions.timeout]
+  seconds = 30  # Set timeout to 30 seconds
+
+  [functions.body_size_limit]
+  size = "500mb"  # Set body size limit to 500 MB
+
+  [functions.memory]
+  size = 1024  # Set function memory size to 1024 MB

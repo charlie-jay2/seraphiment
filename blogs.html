@@ -105,7 +105,7 @@
   </div>
 
   <script>
-    fetch('blogs.json')
+    fetch('/.netlify/functions/getBlogs')
       .then(res => res.json())
       .then(data => {
         const blogTitle = document.getElementById("blog-title");
@@ -113,60 +113,62 @@
         const blogGrid = document.getElementById("blog-grid");
         const noBlogsMessage = document.getElementById("no-blogs-message");
 
-        blogTitle.textContent = data.blogName || "Blog";
-        blogDescription.textContent = data.description || "";
-
-        if (!data.posts || data.posts.length === 0) {
+        if (!data || data.length === 0) {
           noBlogsMessage.style.display = "block";
           return;
         }
 
-        data.posts.forEach(post => {
-          const col = document.createElement("div");
-          col.classList.add("col");
+        data.forEach(blog => {
+          blogTitle.textContent = blog.blogName || "Blog";
+          blogDescription.textContent = blog.description || "";
 
-          const blogBtn = document.createElement("button");
-          blogBtn.classList.add("blog-button");
+          blog.posts.forEach(post => {
+            const col = document.createElement("div");
+            col.classList.add("col");
 
-          blogBtn.innerHTML = `
-            <div class="blog-title">${post.title}</div>
-            <div class="blog-date">${post.date || "No Date Provided"}</div>
-          `;
+            const blogBtn = document.createElement("button");
+            blogBtn.classList.add("blog-button");
 
-          blogBtn.onclick = function () {
-            const modalTitle = document.getElementById("blogModalLabel");
-            const modalDate = document.getElementById("blogModalDate");
-            const modalVideo = document.getElementById("modal-video-player");
-            const modalSource = document.getElementById("modal-video-source");
-            const noVideoMessage = document.getElementById("modal-no-video");
-            const modalText = document.getElementById("modal-blog-text");
+            blogBtn.innerHTML = `
+              <div class="blog-title">${post.title}</div>
+              <div class="blog-date">${post.date || "No Date Provided"}</div>
+            `;
 
-            modalTitle.textContent = post.title;
-            modalDate.textContent = post.date || "";
-            modalText.textContent = post.content || "";
+            blogBtn.onclick = function () {
+              const modalTitle = document.getElementById("blogModalLabel");
+              const modalDate = document.getElementById("blogModalDate");
+              const modalVideo = document.getElementById("modal-video-player");
+              const modalSource = document.getElementById("modal-video-source");
+              const noVideoMessage = document.getElementById("modal-no-video");
+              const modalText = document.getElementById("modal-blog-text");
 
-            if (post.video && post.video.trim() !== "") {
-              modalSource.src = post.video;
-              modalVideo.style.display = "block";
-              noVideoMessage.style.display = "none";
-              modalVideo.load();
-            } else {
-              modalSource.src = "";
-              modalVideo.style.display = "none";
-              noVideoMessage.style.display = "block";
-            }
+              modalTitle.textContent = post.title;
+              modalDate.textContent = post.date || "";
+              modalText.textContent = post.content || "";
 
-            const modal = new bootstrap.Modal(document.getElementById("blogModal"));
-            modal.show();
-          };
+              if (post.video && post.video.trim() !== "") {
+                modalSource.src = post.video;
+                modalVideo.style.display = "block";
+                noVideoMessage.style.display = "none";
+                modalVideo.load();
+              } else {
+                modalSource.src = "";
+                modalVideo.style.display = "none";
+                noVideoMessage.style.display = "block";
+              }
 
-          col.appendChild(blogBtn);
-          blogGrid.appendChild(col);
+              const modal = new bootstrap.Modal(document.getElementById("blogModal"));
+              modal.show();
+            };
+
+            col.appendChild(blogBtn);
+            blogGrid.appendChild(col);
+          });
         });
       })
       .catch(error => {
-        document.getElementById("blog-title").textContent = "Failed to load blog";
-        console.error("Error loading blogs.json:", error);
+        document.getElementById("blog-title").textContent = "Failed to load blogs";
+        console.error("Error fetching blogs:", error);
       });
   </script>
 
