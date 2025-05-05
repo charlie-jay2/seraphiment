@@ -118,52 +118,53 @@
           return;
         }
 
-        data.forEach(blog => {
-          blogTitle.textContent = blog.blogName || "Blog";
-          blogDescription.textContent = blog.description || "";
+        // Set main blog info (if available)
+        blogTitle.textContent = data[0].blogName || "Blog";
+        blogDescription.textContent = data[0].description || "";
 
-          blog.posts.forEach(post => {
-            const col = document.createElement("div");
-            col.classList.add("col");
+        // Loop through each blog post
+        data[0].posts.forEach(post => {
+          const col = document.createElement("div");
+          col.classList.add("col");
 
-            const blogBtn = document.createElement("button");
-            blogBtn.classList.add("blog-button");
+          const blogBtn = document.createElement("button");
+          blogBtn.classList.add("blog-button");
 
-            blogBtn.innerHTML = `
-              <div class="blog-title">${post.title}</div>
-              <div class="blog-date">${post.date || "No Date Provided"}</div>
-            `;
+          blogBtn.innerHTML = `
+            <div class="blog-title">${post.blogName || "Untitled"}</div>
+            <div class="blog-date">${post.date || "No Date Provided"}</div>
+          `;
 
-            blogBtn.onclick = function () {
-              const modalTitle = document.getElementById("blogModalLabel");
-              const modalDate = document.getElementById("blogModalDate");
-              const modalVideo = document.getElementById("modal-video-player");
-              const modalSource = document.getElementById("modal-video-source");
-              const noVideoMessage = document.getElementById("modal-no-video");
-              const modalText = document.getElementById("modal-blog-text");
+          blogBtn.onclick = function () {
+            const modalTitle = document.getElementById("blogModalLabel");
+            const modalDate = document.getElementById("blogModalDate");
+            const modalVideo = document.getElementById("modal-video-player");
+            const modalSource = document.getElementById("modal-video-source");
+            const noVideoMessage = document.getElementById("modal-no-video");
+            const modalText = document.getElementById("modal-blog-text");
 
-              modalTitle.textContent = post.title;
-              modalDate.textContent = post.date || "";
-              modalText.textContent = post.content || "";
+            modalTitle.textContent = post.blogName;
+            modalDate.textContent = post.date || "";
+            modalText.textContent = post.content || "";
 
-              if (post.video && post.video.trim() !== "") {
-                modalSource.src = post.video;
-                modalVideo.style.display = "block";
-                noVideoMessage.style.display = "none";
-                modalVideo.load();
-              } else {
-                modalSource.src = "";
-                modalVideo.style.display = "none";
-                noVideoMessage.style.display = "block";
-              }
+            // Check if video exists
+            if (post.videoId) {
+              modalSource.src = `/files/${post.videoId}`;
+              modalVideo.style.display = "block";
+              noVideoMessage.style.display = "none";
+              modalVideo.load();
+            } else {
+              modalSource.src = "";
+              modalVideo.style.display = "none";
+              noVideoMessage.style.display = "block";
+            }
 
-              const modal = new bootstrap.Modal(document.getElementById("blogModal"));
-              modal.show();
-            };
+            const modal = new bootstrap.Modal(document.getElementById("blogModal"));
+            modal.show();
+          };
 
-            col.appendChild(blogBtn);
-            blogGrid.appendChild(col);
-          });
+          col.appendChild(blogBtn);
+          blogGrid.appendChild(col);
         });
       })
       .catch(error => {

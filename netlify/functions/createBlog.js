@@ -11,7 +11,7 @@ exports.handler = async (event, context) => {
   let fileBuffer = Buffer.alloc(0);
   let fileName = '';
   let fileMimeType = '';
-
+  
   return new Promise((resolve, reject) => {
     busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
       fileName = filename;
@@ -53,15 +53,16 @@ exports.handler = async (event, context) => {
           });
 
           uploadStream.end(fileBuffer);
-          videoId = uploadStream.id;
+          videoId = uploadStream.id; // Save the video ID if uploaded
         }
 
+        // Insert the blog post into the database
         const blogPost = {
           blogName: fields.blogName,
           description: fields.description,
           content: fields.content,
           date: new Date().toLocaleDateString('en-GB'),
-          videoId: videoId,
+          videoId: videoId || null, // Video ID will be null if no video is uploaded
         };
 
         await db.collection('blogs').insertOne(blogPost);
